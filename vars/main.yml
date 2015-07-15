@@ -1,2 +1,3 @@
 ---
 # vars file for jjs
+jjs_source_location: git@bitbucket.org:jamezpolley/jenkins-job-scraper.git
