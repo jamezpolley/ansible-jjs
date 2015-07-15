@@ -9,3 +9,11 @@
 - file: path="~/public_html" state="directory" owner="{{ ansible_user_id }}" mode=755
 - copy: dest="~/bin/scrape-all-jobs.sh" src="scrape-all-jobs.sh" owner="{{ ansible_user_id }}" mode=0544
 - cron: name='get data' user="{{ ansible_user_id }}" minute="*/15" job="~/bin/scrape-all-jobs.sh ~/jjs-venv ~/jjs-venv/conf ~/data ~/public_html"
+- apt: name=nginx state=present
+  sudo: yes
+- template: src=reports.conf dest=/etc/nginx/sites-available/reports owner=root group=root mode=644
+  sudo: yes
+  notify:
+    - restart nginx
+- file: src="/etc/nginx/sites-available/reports" dest="/etc/nginx/sites-enabled/reports" state=link
+  sudo: yes
