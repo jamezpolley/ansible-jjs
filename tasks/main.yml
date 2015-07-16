@@ -1,19 +1,40 @@
 ---
 # tasks file for jjs
-- known_hosts: host="bitbucket.org" key="bitbucket.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqTKl/VqLat/MaB33pZy0y3rJZtnqwR2qOOvbwKZYKiEO1O6VqNEBxKvJJelCq0dTXWT5pbO2gDXC6h6QDXCaHo6pOHGPUy+YBaGQRGuSusMEASYiWunYN0vCAI8QaXnWMXNMdFP3jHAJH0eDsoiGnLPBlBp4TNm6rYI74nMzgz3B9IikW4WVK+dc8KZJZWYjAuORU3jc1c/NPskD2ASinf8v3xnfXeukU0sJ5N6m5E8VLjObPEO+mN2t/FZTMZLiFqPWc/ALSqnMnnhwrNi2rbfg/rd/IpL8Le3pSBne8+seeFVBoGqzHM9yXw=="
+
+- apt: update_cache=yes upgrade=yes
+  sudo: yes
+- apt: name={{ item }} state=latest
+  sudo: yes
+  with_items:
+    - git
+    - nginx
+    - python-pip
+    - libssl-dev
+    - libffi-dev
+    - python2.7-dev
+    - python3.4-dev
+- pip: state=latest name={{ item }}
+  sudo: yes
+  with_items:
+    - pip
+    - virtualenv
+    - setuptools
+    - pyOpenSSL
+    - ndg-httpsclient
+    - pyasn
+    - tox
 - git: repo={{ jjs_source_location }} dest=src/jenkins-job-scraper
 - pip: name='~/src/jenkins-job-scraper' virtualenv=~/jjs-venv state="latest"
 - synchronize: src='conf' dest='~/jjs-venv'
 - file: path="~/data" state="directory" owner="{{ ansible_user_id }}"
 - file: path="~/bin" state="directory" owner="{{ ansible_user_id }}"
-- file: path="~/public_html" state="directory" owner="{{ ansible_user_id }}" mode=755
+- file: path="/usr/share/nginx/html/reports" state="directory" owner="{{ ansible_user_id }}" mode=755
+  sudo: yes
 - copy: dest="~/bin/scrape-all-jobs.sh" src="scrape-all-jobs.sh" owner="{{ ansible_user_id }}" mode=0544
-- cron: name='get data' user="{{ ansible_user_id }}" minute="*/15" job="~/bin/scrape-all-jobs.sh ~/jjs-venv ~/jjs-venv/conf ~/data ~/public_html"
+- cron: name='get data' user="{{ ansible_user_id }}" minute="*/15" job="~/bin/scrape-all-jobs.sh ~/jjs-venv ~/jjs-venv/conf ~/data /usr/share/nginx/html/reports"
 - apt: name=nginx state=present
   sudo: yes
-- template: src=reports.conf dest=/etc/nginx/sites-available/reports owner=root group=root mode=644
+- template: src=default dest=/etc/nginx/sites-available/default
   sudo: yes
-  notify:
-    - restart nginx
-- file: src="/etc/nginx/sites-available/reports" dest="/etc/nginx/sites-enabled/reports" state=link
-  sudo: yes
+  notify: reload nginx
+

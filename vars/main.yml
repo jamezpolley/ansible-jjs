@@ -1,3 +1,6 @@
 ---
 # vars file for jjs
 jjs_source_location: https://github.com/jamezpolley/jenkins-job-scraper.git
+jjs_listen_port: 80
+jjs_base_path: reports
+jjs_server_name: bruce.jamezpolley.com
